@@ -1,19 +1,29 @@
-import prisma from "@/lib/prisma";
+"use client";
+
+import { useEffect, useState } from "react";
 import Image from "next/image";
 
-const UserCard = async ({
+const UserCard = ({
   type,
 }: {
   type: "admin" | "teacher" | "student" | "parent";
 }) => {
-  const modelMap: Record<typeof type, any> = {
-    admin: prisma.admin,
-    teacher: prisma.teacher,
-    student: prisma.student,
-    parent: prisma.parent,
-  };
+  const [data, setData] = useState<number>(0);
 
-  const data = await modelMap[type].count();
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(`/api/count/${type}`);
+        const result = await response.json();
+        setData(result.count || 0);
+      } catch (error) {
+        console.error(`Error fetching ${type} count:`, error);
+        setData(0);
+      }
+    };
+
+    fetchData();
+  }, [type]);
 
   return (
     <div className="rounded-2xl odd:bg-lamaPurple even:bg-lamaYellow p-4 flex-1 min-w-[130px]">
