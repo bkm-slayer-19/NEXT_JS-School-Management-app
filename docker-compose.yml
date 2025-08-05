@@ -1,17 +1,22 @@
 version: '3.8'
 
 services:
-  postgress:
+  postgres:  # Fixed: was "postgress" 
     image: postgres:16
     container_name: postgres_db
     environment:
-      POSTGRES_USER: myuser
-      POSTGRES_PASSWORD: mypassword
-      POSTGRES_DB: mydb
+      POSTGRES_USER: bijayadev
+      POSTGRES_PASSWORD: bijaya12345
+      POSTGRES_DB: school
     ports:
       - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bijayadev -d school"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     
   app:
     build: .
@@ -19,9 +24,17 @@ services:
     ports:
       - '3000:3000'
     environment:
-      - DATABASE_URL: postgresql://myuser:mypassword@[YOUR_SERVER_IP]:5432/mydb
+      # Fixed: Remove colon after DATABASE_URL and use correct service name
+      - DATABASE_URL=postgresql://bijayadev:bijaya12345@postgres:5432/school
+      - NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_Y29tcG9zZWQtZ29zaGF3ay0zNy5jbGVyay5hY2NvdW50cy5kZXYk
+      - CLERK_SECRET_KEY=sk_test_p00GYBCALBUkowHIIHN4pIsQPiRnE7K89WVuDXUu8w
+      - NEXT_PUBLIC_CLERK_SIGN_IN_URL=/
+      - NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=dqzoqdbus
+      - NEXT_PUBLIC_CLOUDINARY_API_KEY=937281395422975
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
 
 volumes:
   postgres_data:
